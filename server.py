@@ -10,16 +10,28 @@ def index():
     title="姓名判断bot", \
     message="あなたのお名前は？")
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['POST','GET'])
 def form():
-    field = request.form['field']
-    print(len(field))
-    if len(field) > 5:
-        field = '大吉'
-    else: field = '凶'
-    return render_template('index.html', \
-    title="姓名判断bot", \
-    message="あなたの運勢は「%s」です！" % field)
+    if request.method=='POST':
+        try:
+            field = request.form['field']
+            print(len(field))
+            if len(field) > 5:
+                luck = '大吉'
+            else: luck = '凶'
+
+            with sql.connect("luckname.db") as con:
+                cur=con.cursor()
+                cur.execute("insert into luckname (name,foetune) VALUES (?,?)",(field,luck))
+                con.commit()
+        except:
+            msg="error"
+        
+        finally:
+            con.close()
+            return render_template('index.html', \
+        title="姓名判断bot", \
+        message="あなたの運勢は「%s」です！" % field)
 
 if __name__ == '__main__':
     app.debug = True
